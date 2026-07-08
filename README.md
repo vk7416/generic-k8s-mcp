@@ -61,8 +61,8 @@ Run against your current kubeconfig:
   --context="" \
   --namespace=default \
   --readonly=true \
-  --allow-secrets=false \
-  --allow-exec=false
+  --allow-secret-read=false \
+  --allow-pod-command=false
 ```
 
 Run against a specific context:
@@ -89,8 +89,8 @@ For a stdio MCP client:
         "--context=YOUR_CONTEXT",
         "--namespace=default",
         "--readonly=true",
-        "--allow-secrets=false",
-        "--allow-exec=false"
+        "--allow-secret-read=false",
+        "--allow-pod-command=false"
       ]
     }
   }
