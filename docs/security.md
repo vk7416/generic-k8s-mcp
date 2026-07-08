@@ -1,3 +1,8 @@
+---
+title: Security
+description: Security defaults and control model for generic-k8s-mcp.
+---
+
 # Security model
 
 The server is designed to be safe by default.

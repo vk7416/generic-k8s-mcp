@@ -1,0 +1,16 @@
+title: Generic Kubernetes MCP Server
+description: Read-only Kubernetes MCP server and future remote gateway.
+theme: minima
+markdown: kramdown
+kramdown:
+  input: GFM
+plugins:
+  - jekyll-feed
+header_pages:
+  - index.md
+  - quickstart.md
+  - architecture.md
+  - tools.md
+  - security.md
+  - roadmap.md
+  - gateway-plan.md

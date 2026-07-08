@@ -1,3 +1,8 @@
+---
+title: Roadmap
+description: Planned milestones for generic-k8s-mcp.
+---
+
 # Roadmap
 
 ## v0.1 MVP
@@ -18,7 +23,7 @@
 
 ## v0.3 Better troubleshooting
 
-- Add owner-reference traversal: Pod -> ReplicaSet -> Deployment.
+- Owner-reference traversal: Pod -> ReplicaSet -> Deployment.
 - Add service-to-endpoint diagnostics.
 - Add ingress backend diagnostics.
 - Add HPA and PDB analysis.

@@ -1,3 +1,8 @@
+---
+title: Quickstart
+description: Build and run generic-k8s-mcp locally.
+---
+
 # Quickstart
 
 This guide shows how to build and run `generic-k8s-mcp` locally using your existing Kubernetes context.
