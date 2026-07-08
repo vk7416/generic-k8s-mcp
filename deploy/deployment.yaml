@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-mcp-server
+  namespace: k8s-mcp
+  labels:
+    app: k8s-mcp-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-mcp-server
+  template:
+    metadata:
+      labels:
+        app: k8s-mcp-server
+    spec:
+      serviceAccountName: k8s-mcp-reader
+      containers:
+        - name: k8s-mcp-server
+          image: ghcr.io/vk7416/generic-k8s-mcp:latest
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--mode=incluster"
+            - "--readonly=true"
+            - "--allow-secret-read=false"
+            - "--allow-pod-command=false"
+            - "--transport=stdio"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
