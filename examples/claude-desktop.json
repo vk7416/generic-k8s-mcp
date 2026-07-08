@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "generic-k8s": {
+      "command": "/absolute/path/to/k8s-mcp-server",
+      "args": [
+        "--mode=local",
+        "--kubeconfig=/Users/YOU/.kube/config",
+        "--context=YOUR_CONTEXT",
+        "--namespace=default",
+        "--readonly=true",
+        "--allow-secret-read=false",
+        "--allow-pod-command=false"
+      ]
+    }
+  }
+}
