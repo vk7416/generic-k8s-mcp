@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "generic-k8s-current": {
+      "command": "k8s-mcp-server",
+      "args": [
+        "--mode=local",
+        "--namespace=default",
+        "--readonly=true"
+      ]
+    }
+  }
+}
