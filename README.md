@@ -4,6 +4,10 @@ A read-only, context-aware Model Context Protocol (MCP) server for Kubernetes.
 
 The goal is simple: let an AI assistant inspect Kubernetes clusters using the same access model as `kubectl` and K9s.
 
+## Acknowledgements
+
+This project was inspired in part by [`k9s`](https://github.com/derailed/k9s) by [Derailed](https://github.com/derailed). K9s has been a strong reference point for practical Kubernetes inspection and operator workflows.
+
 Project site and docs:
 
 - GitHub Pages site source: [`docs/`](docs/)
