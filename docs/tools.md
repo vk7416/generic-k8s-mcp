@@ -1,3 +1,8 @@
+---
+title: Tools
+description: Tool reference for generic-k8s-mcp.
+---
+
 # Tool reference
 
 ## cluster_info
@@ -36,7 +41,7 @@ Use `namespace: "all"` for all namespaces.
 
 ## describe_pod
 
-Reads one Pod and returns phase, readiness, restarts, conditions, containers, node placement, and warning events when event access is allowed.
+Reads one Pod and returns phase, readiness, restarts, conditions, containers, node placement, warning events, and owning workload details when those reads are allowed.
 
 ## get_pod_logs
 

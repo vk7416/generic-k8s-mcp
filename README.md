@@ -4,6 +4,11 @@ A read-only, context-aware Model Context Protocol (MCP) server for Kubernetes.
 
 The goal is simple: let an AI assistant inspect Kubernetes clusters using the same access model as `kubectl` and K9s.
 
+Project site and docs:
+
+- GitHub Pages site source: [`docs/`](docs/)
+- Gateway hosting plan: [`docs/gateway-plan.md`](docs/gateway-plan.md)
+
 ## Architecture
 
 ```mermaid
@@ -83,7 +88,7 @@ This is an MVP scaffold. It implements a minimal JSON-RPC/MCP stdio server in Go
 | `list_nodes` | List nodes, readiness, taints, capacity, and allocatable resources. |
 | `describe_node` | Inspect a node's labels, taints, conditions, and resource info. |
 | `list_pods` | List pods by namespace, label selector, and field selector. |
-| `describe_pod` | Inspect pod phase, readiness, conditions, containers, and warning events. |
+| `describe_pod` | Inspect pod phase, readiness, conditions, containers, warning events, and owning workload. |
 | `get_pod_logs` | Read pod logs with optional container, tail, and since options. |
 | `list_events` | List events in a namespace. |
 | `list_deployments` | List deployment readiness and rollout status. |
