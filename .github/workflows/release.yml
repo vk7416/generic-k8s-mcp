@@ -10,6 +10,17 @@ on:
         description: "Semantic version tag to release, for example v0.2.0"
         required: true
         type: string
+  workflow_call:
+    inputs:
+      tag:
+        description: "Semantic version tag to release, for example v0.2.0"
+        required: true
+        type: string
+      publish_latest:
+        description: "Whether to also update the floating latest image tags"
+        required: false
+        default: true
+        type: boolean
 
 permissions:
   contents: write
@@ -28,8 +39,13 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+            echo "publish_latest=true" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "workflow_call" ]; then
+            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+            echo "publish_latest=${{ inputs.publish_latest }}" >> "$GITHUB_OUTPUT"
           else
             echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+            echo "publish_latest=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Checkout
@@ -92,12 +108,25 @@ jobs:
             ${{ env.DOCKERHUB_IMAGE }}
           tags: |
             type=raw,value=${{ steps.vars.outputs.tag }}
-            type=raw,value=latest
           labels: |
             org.opencontainers.image.title=generic-k8s-mcp
             org.opencontainers.image.description=Read-only Kubernetes MCP server
             org.opencontainers.image.source=https://github.com/vk7416/generic-k8s-mcp
             org.opencontainers.image.version=${{ steps.vars.outputs.tag }}
+
+      - name: Expand Docker tags
+        id: publish-tags
+        run: |
+          {
+            echo 'tags<<EOF'
+            echo '${{ env.GHCR_IMAGE }}:${{ steps.vars.outputs.tag }}'
+            echo '${{ env.DOCKERHUB_IMAGE }}:${{ steps.vars.outputs.tag }}'
+            if [ "${{ steps.vars.outputs.publish_latest }}" = "true" ]; then
+              echo '${{ env.GHCR_IMAGE }}:latest'
+              echo '${{ env.DOCKERHUB_IMAGE }}:latest'
+            fi
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
 
       - name: Build and push multi-arch image
         uses: docker/build-push-action@v6
@@ -105,7 +134,7 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.publish-tags.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Create GitHub Release

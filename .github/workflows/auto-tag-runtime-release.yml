@@ -1,0 +1,63 @@
+name: auto-tag-runtime-release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "internal/**"
+      - "cmd/k8s-mcp-server/**"
+
+permissions:
+  contents: write
+  packages: write
+
+concurrency:
+  group: auto-tag-runtime-release
+  cancel-in-progress: false
+
+jobs:
+  create_tag:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine next patch tag
+        id: version
+        run: |
+          latest="$(git tag -l 'v*.*.*' --sort=-v:refname | head -n 1)"
+          if [ -z "$latest" ]; then
+            next_tag="v0.1.0"
+          else
+            version="${latest#v}"
+            major="${version%%.*}"
+            rest="${version#*.}"
+            minor="${rest%%.*}"
+            patch="${rest##*.}"
+            next_tag="v${major}.${minor}.$((patch + 1))"
+          fi
+
+          echo "tag=$next_tag" >> "$GITHUB_OUTPUT"
+
+      - name: Create and push tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ steps.version.outputs.tag }}" -m "Release ${{ steps.version.outputs.tag }}"
+          git push origin "${{ steps.version.outputs.tag }}"
+
+  publish_release:
+    needs: create_tag
+    uses: ./.github/workflows/release.yml
+    permissions:
+      contents: write
+      packages: write
+    with:
+      tag: ${{ needs.create_tag.outputs.tag }}
+      publish_latest: true
+    secrets: inherit

@@ -14,11 +14,13 @@ Project site and docs:
 This repo follows a tag-driven release pattern.
 
 - Pull requests merge into `main`
+- Merges to `main` that change `internal/**` or `cmd/k8s-mcp-server/**` automatically create the next patch tag
 - Releases are created from semantic version tags like `v0.2.0`
 - Each release publishes multi-arch container images to:
   - `ghcr.io/vk7416/generic-k8s-mcp:<tag>`
   - `docker.io/bullraju/generic-k8s-mcp:<tag>`
 - The release workflow also updates the floating `:latest` tag in both registries
+- A manual promotion workflow can promote any released version to the floating `stable` channel in both registries
 - A GitHub Release is created for the same tag
 
 Required GitHub secret for Docker Hub publishing:
@@ -33,6 +35,15 @@ git pull
 git tag v0.2.0
 git push origin v0.2.0
 ```
+
+Stable promotion flow:
+
+- Run the `promote-stable` workflow manually
+- Provide an existing release tag such as `v0.2.0`
+- The workflow will:
+  - move the mutable git tag `stable` to that release
+  - promote `ghcr.io/vk7416/generic-k8s-mcp:v0.2.0` to `ghcr.io/vk7416/generic-k8s-mcp:stable`
+  - promote `docker.io/bullraju/generic-k8s-mcp:v0.2.0` to `docker.io/bullraju/generic-k8s-mcp:stable`
 
 ## Architecture
 
