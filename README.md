@@ -9,6 +9,31 @@ Project site and docs:
 - GitHub Pages site source: [`docs/`](docs/)
 - Gateway hosting plan: [`docs/gateway-plan.md`](docs/gateway-plan.md)
 
+## Release pattern
+
+This repo follows a tag-driven release pattern.
+
+- Pull requests merge into `main`
+- Releases are created from semantic version tags like `v0.2.0`
+- Each release publishes multi-arch container images to:
+  - `ghcr.io/vk7416/generic-k8s-mcp:<tag>`
+  - `docker.io/bullraju/generic-k8s-mcp:<tag>`
+- The release workflow also updates the floating `:latest` tag in both registries
+- A GitHub Release is created for the same tag
+
+Required GitHub secret for Docker Hub publishing:
+
+- `DOCKERHUB_TOKEN`
+
+Example release flow:
+
+```bash
+git checkout main
+git pull
+git tag v0.2.0
+git push origin v0.2.0
+```
+
 ## Architecture
 
 ```mermaid
