@@ -133,15 +133,34 @@ kubectl auth can-i list nodes
 
 The MCP server will only be able to do what this context can do.
 
-### 4. Run the MCP server manually
+### 4. Define local helper variables
+
+Run these from the repo root after `make build`:
+
+```bash
+MCP_BIN="$(pwd)/bin/k8s-mcp-server"
+KUBE_CONFIG="$HOME/.kube/config"
+KUBE_CONTEXT="$(kubectl config current-context)"
+KUBE_NAMESPACE="default"
+```
+
+Check them:
+
+```bash
+echo "$MCP_BIN"
+echo "$KUBE_CONTEXT"
+```
+
+### 5. Run the MCP server manually
 
 Use your current kubeconfig context:
 
 ```bash
-./bin/k8s-mcp-server \
+"$MCP_BIN" \
   --mode=local \
-  --kubeconfig="$HOME/.kube/config" \
-  --namespace=default \
+  --kubeconfig="$KUBE_CONFIG" \
+  --context="$KUBE_CONTEXT" \
+  --namespace="$KUBE_NAMESPACE" \
   --readonly=true \
   --allow-secret-read=false \
   --allow-pod-command=false
@@ -150,19 +169,187 @@ Use your current kubeconfig context:
 Use a specific context:
 
 ```bash
-./bin/k8s-mcp-server \
+"$MCP_BIN" \
   --mode=local \
   --kubeconfig="$HOME/.kube/config" \
   --context=my-cluster-context \
   --namespace=kube-system \
-  --readonly=true
+  --readonly=true \
+  --allow-secret-read=false \
+  --allow-pod-command=false
 ```
 
 ## Connect it to an MCP client
 
-The server currently uses stdio transport. Configure your MCP client to start the binary.
+The server currently uses stdio transport. Most MCP clients start the server process for you, so you usually do **not** manually keep `k8s-mcp-server` running. Configure the client with the binary path and args.
 
-Example config:
+### Shared command and args
+
+All clients below use the same server command:
+
+```bash
+MCP_BIN="$(pwd)/bin/k8s-mcp-server"
+KUBE_CONFIG="$HOME/.kube/config"
+KUBE_CONTEXT="$(kubectl config current-context)"
+KUBE_NAMESPACE="default"
+```
+
+Server args:
+
+```text
+--mode=local
+--kubeconfig=$KUBE_CONFIG
+--context=$KUBE_CONTEXT
+--namespace=$KUBE_NAMESPACE
+--readonly=true
+--allow-secret-read=false
+--allow-pod-command=false
+```
+
+### Codex CLI
+
+Codex stores MCP configuration in `~/.codex/config.toml`, and the Codex CLI and IDE extension share this configuration.
+
+From the repo root:
+
+```bash
+MCP_BIN="$(pwd)/bin/k8s-mcp-server"
+KUBE_CONTEXT="$(kubectl config current-context)"
+
+codex mcp add generic-k8s -- "$MCP_BIN" \
+  --mode=local \
+  --kubeconfig="$HOME/.kube/config" \
+  --context="$KUBE_CONTEXT" \
+  --namespace=default \
+  --readonly=true \
+  --allow-secret-read=false \
+  --allow-pod-command=false
+```
+
+Verify inside Codex:
+
+```text
+/mcp
+```
+
+You can also edit `~/.codex/config.toml` directly:
+
+```toml
+[mcp_servers.generic-k8s]
+command = "/absolute/path/to/generic-k8s-mcp/bin/k8s-mcp-server"
+args = [
+  "--mode=local",
+  "--kubeconfig=/Users/YOU/.kube/config",
+  "--context=YOUR_CONTEXT",
+  "--namespace=default",
+  "--readonly=true",
+  "--allow-secret-read=false",
+  "--allow-pod-command=false"
+]
+startup_timeout_sec = 20
+tool_timeout_sec = 60
+enabled = true
+```
+
+Example Codex prompts:
+
+```text
+Use generic-k8s and run cluster_info.
+Use generic-k8s and show unhealthy pods in namespace default.
+Use generic-k8s and list warning events in kube-system.
+Use generic-k8s and tell me whether my current context can list pods across all namespaces.
+```
+
+### Cursor
+
+Cursor can use the standard MCP JSON config shape. For a project-local setup, create `.cursor/mcp.json` in the repo or workspace where you want Cursor to use the server.
+
+From the repo root:
+
+```bash
+MCP_BIN="$(pwd)/bin/k8s-mcp-server"
+KUBE_CONTEXT="$(kubectl config current-context)"
+mkdir -p .cursor
+cat > .cursor/mcp.json <<EOF
+{
+  "mcpServers": {
+    "generic-k8s": {
+      "command": "$MCP_BIN",
+      "args": [
+        "--mode=local",
+        "--kubeconfig=$HOME/.kube/config",
+        "--context=$KUBE_CONTEXT",
+        "--namespace=default",
+        "--readonly=true",
+        "--allow-secret-read=false",
+        "--allow-pod-command=false"
+      ]
+    }
+  }
+}
+EOF
+```
+
+Then restart Cursor or reload the window. In Cursor chat/agent mode, ask:
+
+```text
+Use the generic-k8s MCP server and run cluster_info.
+Use generic-k8s to show unhealthy pods in namespace default.
+Use generic-k8s to describe deployment api in namespace default.
+```
+
+For a global Cursor setup, use the same JSON shape in your global Cursor MCP configuration file if your Cursor version exposes one through Settings > MCP.
+
+### Claude Code
+
+Claude Code supports local stdio MCP servers. Use `--` to separate Claude's flags from the server command and server args.
+
+From the repo root:
+
+```bash
+MCP_BIN="$(pwd)/bin/k8s-mcp-server"
+KUBE_CONTEXT="$(kubectl config current-context)"
+
+claude mcp add --transport stdio generic-k8s -- "$MCP_BIN" \
+  --mode=local \
+  --kubeconfig="$HOME/.kube/config" \
+  --context="$KUBE_CONTEXT" \
+  --namespace=default \
+  --readonly=true \
+  --allow-secret-read=false \
+  --allow-pod-command=false
+```
+
+Verify:
+
+```bash
+claude mcp list
+claude mcp get generic-k8s
+```
+
+Inside Claude Code, check server status with:
+
+```text
+/mcp
+```
+
+Example Claude prompts:
+
+```text
+Use generic-k8s and run cluster_info.
+Use generic-k8s and show warning events in kube-system.
+Use generic-k8s and explain why pods are unhealthy in namespace default.
+```
+
+### Claude Desktop
+
+Claude Desktop uses the same `mcpServers` JSON shape. On macOS, edit:
+
+```text
+~/Library/Application Support/Claude/claude_desktop_config.json
+```
+
+Example:
 
 ```json
 {
@@ -183,15 +370,7 @@ Example config:
 }
 ```
 
-Replace:
-
-```text
-/absolute/path/to/generic-k8s-mcp/bin/k8s-mcp-server
-/Users/YOU/.kube/config
-YOUR_CONTEXT
-```
-
-with your real path and Kubernetes context.
+Restart Claude Desktop after editing the file.
 
 ## Manual JSON-RPC test
 
@@ -312,6 +491,32 @@ Check:
 ```bash
 kubectl top pods -A
 kubectl top nodes
+```
+
+### MCP client cannot find the server
+
+Use an absolute path for the server binary:
+
+```bash
+cd generic-k8s-mcp
+pwd
+ls -l bin/k8s-mcp-server
+```
+
+Then use:
+
+```text
+/full/path/to/generic-k8s-mcp/bin/k8s-mcp-server
+```
+
+### MCP client starts but tools fail
+
+Check your Kubernetes context and RBAC:
+
+```bash
+kubectl config current-context
+kubectl auth can-i list pods -A
+kubectl auth can-i get pods/log -n default
 ```
 
 ## MVP limitations
