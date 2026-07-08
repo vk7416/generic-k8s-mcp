@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Generic Kubernetes MCP Server</title>
+    <meta
+      name="description"
+      content="Read-only Kubernetes MCP server with local, in-cluster, and future gateway deployment paths."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script defer src="./app.js"></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="brand" href="#top">
+          <span class="brand-mark">GK</span>
+          <span class="brand-text">
+            <strong>generic-k8s-mcp</strong>
+            <span>Read-only Kubernetes MCP server</span>
+          </span>
+        </a>
+        <nav class="top-nav">
+          <a href="#architecture">Architecture</a>
+          <a href="#tools">Tools</a>
+          <a href="#quickstart">Quickstart</a>
+          <a href="#gateway">Gateway</a>
+          <a href="https://github.com/vk7416/generic-k8s-mcp">GitHub</a>
+        </nav>
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">
+          <span class="theme-toggle-light">Light</span>
+          <span class="theme-toggle-dark">Dark</span>
+        </button>
+      </header>
+
+      <main id="top">
+        <section class="hero">
+          <div class="hero-copy">
+            <p class="eyebrow">Kubernetes diagnostics over MCP</p>
+            <h1>Inspect clusters safely with the same trust model as <code>kubectl</code>.</h1>
+            <p class="hero-text">
+              Generic Kubernetes MCP Server is a read-only Go server for AI clients that need
+              structured access to pods, deployments, events, logs, metrics, and ownership
+              context without bypassing Kubernetes RBAC.
+            </p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="#quickstart">Start locally</a>
+              <a class="button button-secondary" href="https://github.com/vk7416/generic-k8s-mcp">View repository</a>
+            </div>
+            <ul class="hero-facts">
+              <li>Read-only by default</li>
+              <li>Works with kubeconfig or ServiceAccount</li>
+              <li>Current transport: stdio</li>
+              <li>Release images to GHCR and Docker Hub</li>
+            </ul>
+          </div>
+
+          <aside class="hero-panel">
+            <div class="panel-card">
+              <span class="panel-label">Current status</span>
+              <h2>MVP server, production gateway next</h2>
+              <p>
+                The server already supports local and in-cluster read-only inspection. The next
+                major step is an authenticated remote HTTP gateway for any MCP client.
+              </p>
+            </div>
+            <div class="panel-grid">
+              <article class="metric-card">
+                <span>Transport</span>
+                <strong>stdio</strong>
+              </article>
+              <article class="metric-card">
+                <span>Policy</span>
+                <strong>RBAC + MCP guardrails</strong>
+              </article>
+              <article class="metric-card">
+                <span>Container</span>
+                <strong>Multi-stage Docker build</strong>
+              </article>
+              <article class="metric-card">
+                <span>Release</span>
+                <strong>Tag-driven</strong>
+              </article>
+            </div>
+          </aside>
+        </section>
+
+        <section class="section">
+          <div class="section-heading">
+            <p class="eyebrow">Why it exists</p>
+            <h2>Natural-language cluster inspection without cluster-admin shortcuts</h2>
+          </div>
+          <div class="card-grid card-grid-three">
+            <article class="info-card">
+              <h3>Use existing Kubernetes identity</h3>
+              <p>
+                Local mode uses the current kubeconfig context. In-cluster mode uses the Pod
+                ServiceAccount. No hidden admin channel is introduced.
+              </p>
+            </article>
+            <article class="info-card">
+              <h3>RBAC stays authoritative</h3>
+              <p>
+                Every Kubernetes read is checked with <code>SelfSubjectAccessReview</code> before
+                the API call runs.
+              </p>
+            </article>
+            <article class="info-card">
+              <h3>Useful troubleshooting shape</h3>
+              <p>
+                Pod inspection includes restart evidence, warnings, and owning workload context
+                such as <code>Pod -&gt; ReplicaSet -&gt; Deployment</code>.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section id="architecture" class="section section-contrast">
+          <div class="section-heading">
+            <p class="eyebrow">Architecture</p>
+            <h2>Current stdio flow and future gateway flow</h2>
+          </div>
+
+          <div class="architecture-layout">
+            <div class="diagram-card">
+              <div class="diagram-header">
+                <h3>Current architecture</h3>
+                <p>Local or in-cluster read-only access with policy and RBAC enforcement.</p>
+              </div>
+              <svg class="architecture-diagram" viewBox="0 0 1160 720" role="img" aria-label="Architecture diagram for generic-k8s-mcp">
+                <defs>
+                  <linearGradient id="heroStroke" x1="0%" x2="100%">
+                    <stop offset="0%" stop-color="#0f8b8d" />
+                    <stop offset="100%" stop-color="#f25f5c" />
+                  </linearGradient>
+                  <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+                    <path d="M0,0 L12,6 L0,12 z" fill="currentColor"></path>
+                  </marker>
+                </defs>
+
+                <rect x="40" y="260" width="180" height="92" rx="18" class="node node-core" />
+                <text x="130" y="300" text-anchor="middle" class="node-title">AI Client</text>
+                <text x="130" y="328" text-anchor="middle" class="node-subtitle">Codex, Claude, Cursor, custom MCP client</text>
+
+                <rect x="300" y="230" width="220" height="150" rx="22" class="node node-core" />
+                <text x="410" y="276" text-anchor="middle" class="node-title">generic-k8s-mcp</text>
+                <text x="410" y="306" text-anchor="middle" class="node-subtitle">stdio MCP server</text>
+                <text x="410" y="334" text-anchor="middle" class="node-subtitle">policy checks + tool dispatch</text>
+
+                <rect x="580" y="104" width="230" height="110" rx="18" class="node node-soft" />
+                <text x="695" y="148" text-anchor="middle" class="node-title">Local mode</text>
+                <text x="695" y="178" text-anchor="middle" class="node-subtitle">kubeconfig + selected context</text>
+
+                <rect x="580" y="304" width="230" height="110" rx="18" class="node node-soft" />
+                <text x="695" y="348" text-anchor="middle" class="node-title">In-cluster mode</text>
+                <text x="695" y="378" text-anchor="middle" class="node-subtitle">ServiceAccount token</text>
+
+                <rect x="580" y="504" width="230" height="110" rx="18" class="node node-soft" />
+                <text x="695" y="548" text-anchor="middle" class="node-title">Authorization</text>
+                <text x="695" y="578" text-anchor="middle" class="node-subtitle">SelfSubjectAccessReview</text>
+
+                <rect x="900" y="230" width="220" height="150" rx="22" class="node node-core" />
+                <text x="1010" y="276" text-anchor="middle" class="node-title">Kubernetes API</text>
+                <text x="1010" y="306" text-anchor="middle" class="node-subtitle">pods, nodes, deployments, events</text>
+                <text x="1010" y="334" text-anchor="middle" class="node-subtitle">logs, metrics, dynamic resources</text>
+
+                <path d="M220 306 L300 306" class="flow flow-primary" />
+                <path d="M520 250 L580 190" class="flow" />
+                <path d="M520 306 L580 358" class="flow" />
+                <path d="M520 360 L580 524" class="flow" />
+                <path d="M810 158 L900 252" class="flow" />
+                <path d="M810 358 L900 306" class="flow" />
+                <path d="M810 558 L900 350" class="flow" />
+              </svg>
+            </div>
+
+            <div class="architecture-copy">
+              <article class="info-card">
+                <h3>Current request path</h3>
+                <pre><code>Natural language
+  -> MCP client
+  -> generic-k8s-mcp
+  -> MCP readonly policy
+  -> Kubernetes RBAC check
+  -> Kubernetes API read
+  -> structured result back</code></pre>
+              </article>
+              <article class="info-card">
+                <h3>Future gateway mode</h3>
+                <pre><code>Any MCP client
+  -> HTTPS MCP gateway
+  -> authentication
+  -> tenant / cluster resolution
+  -> policy + rate limits
+  -> Kubernetes API</code></pre>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section id="tools" class="section">
+          <div class="section-heading">
+            <p class="eyebrow">Tool surface</p>
+            <h2>Built for troubleshooting, not mutation</h2>
+          </div>
+          <div class="tool-groups">
+            <article class="tool-card">
+              <h3>Cluster and auth</h3>
+              <ul>
+                <li><code>cluster_info</code></li>
+                <li><code>can_i</code></li>
+                <li><code>list_namespaces</code></li>
+                <li><code>list_nodes</code></li>
+                <li><code>describe_node</code></li>
+              </ul>
+            </article>
+            <article class="tool-card">
+              <h3>Pods and workloads</h3>
+              <ul>
+                <li><code>list_pods</code></li>
+                <li><code>describe_pod</code></li>
+                <li><code>get_pod_logs</code></li>
+                <li><code>list_deployments</code></li>
+                <li><code>describe_deployment</code></li>
+              </ul>
+            </article>
+            <article class="tool-card">
+              <h3>Diagnostics and dynamic reads</h3>
+              <ul>
+                <li><code>list_events</code></li>
+                <li><code>get_resource_usage</code></li>
+                <li><code>find_unhealthy_workloads</code></li>
+                <li><code>explain_resource</code></li>
+              </ul>
+            </article>
+          </div>
+          <p class="section-note">
+            By default there are no write operations, no secret reads, no pod exec, no port-forward,
+            and no apply or patch actions.
+          </p>
+        </section>
+
+        <section id="quickstart" class="section section-code">
+          <div class="section-heading">
+            <p class="eyebrow">Quickstart</p>
+            <h2>Build locally and connect any stdio-capable MCP client</h2>
+          </div>
+
+          <div class="card-grid card-grid-two">
+            <article class="info-card">
+              <h3>Build the binary</h3>
+              <pre><code>git clone https://github.com/vk7416/generic-k8s-mcp.git
+cd generic-k8s-mcp
+go mod tidy
+make build</code></pre>
+            </article>
+
+            <article class="info-card">
+              <h3>Check Kubernetes access</h3>
+              <pre><code>kubectl config current-context
+kubectl get ns
+kubectl auth can-i list pods -A
+kubectl auth can-i get pods/log -n default</code></pre>
+            </article>
+
+            <article class="info-card">
+              <h3>Run manually</h3>
+              <pre><code>./bin/k8s-mcp-server \
+  --mode=local \
+  --kubeconfig="$HOME/.kube/config" \
+  --namespace=default \
+  --readonly=true \
+  --allow-secret-read=false \
+  --allow-pod-command=false</code></pre>
+            </article>
+
+            <article class="info-card">
+              <h3>Client configuration shape</h3>
+              <pre><code>{
+  "mcpServers": {
+    "generic-k8s": {
+      "command": "/absolute/path/bin/k8s-mcp-server",
+      "args": [
+        "--mode=local",
+        "--kubeconfig=/Users/YOU/.kube/config",
+        "--context=YOUR_CONTEXT",
+        "--namespace=default",
+        "--readonly=true"
+      ]
+    }
+  }
+}</code></pre>
+            </article>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-heading">
+            <p class="eyebrow">Container and release</p>
+            <h2>Docker-packaged and tag-driven</h2>
+          </div>
+          <div class="card-grid card-grid-two">
+            <article class="info-card">
+              <h3>Local Docker build</h3>
+              <pre><code>docker build -t ghcr.io/vk7416/generic-k8s-mcp:dev .
+# or
+make docker-build</code></pre>
+            </article>
+            <article class="info-card">
+              <h3>Release flow</h3>
+              <pre><code>git checkout main
+git pull
+git tag v0.2.0
+git push origin v0.2.0</code></pre>
+              <p>
+                Tags publish multi-arch images to
+                <code>ghcr.io/vk7416/generic-k8s-mcp</code> and
+                <code>docker.io/bullraju/generic-k8s-mcp</code>, and create a GitHub Release.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section id="gateway" class="section section-contrast">
+          <div class="section-heading">
+            <p class="eyebrow">Gateway plan</p>
+            <h2>What it takes to make this usable by any MCP client over the network</h2>
+          </div>
+          <div class="timeline">
+            <article class="timeline-step">
+              <span>1</span>
+              <div>
+                <h3>Add remote MCP transport</h3>
+                <p>Implement Streamable HTTP while keeping stdio for local developer workflows.</p>
+              </div>
+            </article>
+            <article class="timeline-step">
+              <span>2</span>
+              <div>
+                <h3>Add auth and audit</h3>
+                <p>Bearer token or OIDC auth, request logging, response caps, and rate limiting.</p>
+              </div>
+            </article>
+            <article class="timeline-step">
+              <span>3</span>
+              <div>
+                <h3>Ship one gateway per cluster first</h3>
+                <p>Deploy in-cluster with a scoped ServiceAccount before attempting multi-cluster brokering.</p>
+              </div>
+            </article>
+            <article class="timeline-step">
+              <span>4</span>
+              <div>
+                <h3>Document remote client setup</h3>
+                <p>Publish URL, auth method, timeouts, and example configs for multiple MCP clients.</p>
+              </div>
+            </article>
+          </div>
+          <p class="section-note">
+            Recommended first production target: one cluster, one gateway deployment, read-only only,
+            token auth, and internal or VPN-only exposure.
+          </p>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <div>
+          <strong>generic-k8s-mcp</strong>
+          <p>Generic Kubernetes diagnostics for MCP clients, with RBAC preserved end to end.</p>
+        </div>
+        <div class="footer-links">
+          <a href="https://github.com/vk7416/generic-k8s-mcp">Repository</a>
+          <a href="https://github.com/vk7416/generic-k8s-mcp/blob/main/README.md">README</a>
+          <a href="https://github.com/vk7416/generic-k8s-mcp/blob/main/docs/gateway-plan.md">Gateway plan source</a>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>
