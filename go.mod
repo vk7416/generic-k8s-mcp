@@ -1,6 +1,6 @@
 module github.com/vk7416/generic-k8s-mcp
 
-go 1.23
+go 1.25
 
 require (
 	k8s.io/api v0.35.3
