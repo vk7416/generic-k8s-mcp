@@ -1,0 +1,22 @@
+# Binaries
+bin/
+dist/
+*.exe
+*.out
+*.test
+
+# Go
+vendor/
+coverage.out
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
+
+# Local env
+.env
+.env.*
+
+# Kubeconfig samples
+*.kubeconfig
