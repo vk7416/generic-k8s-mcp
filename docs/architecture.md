@@ -1,3 +1,8 @@
+---
+title: Architecture
+description: Local and in-cluster architecture for generic-k8s-mcp.
+---
+
 # Architecture
 
 `generic-k8s-mcp` follows the same core access idea as `kubectl` and K9s: it uses the current Kubernetes identity and lets Kubernetes RBAC decide what is allowed.
@@ -38,7 +43,7 @@ User asks a natural-language Kubernetes question
 
 ## Tool design
 
-Tools are intentionally small and explicit. For example, `describe_pod` does not mutate anything. It reads the Pod, reads related warning events when allowed, and returns structured evidence.
+Tools are intentionally small and explicit. For example, `describe_pod` does not mutate anything. It reads the Pod, reads related warning events when allowed, resolves owner workload context when RBAC permits it, and returns structured evidence.
 
 ## Why not use cluster-admin?
 
